@@ -50,7 +50,8 @@ jobs:
 
       - name: Deploy container
         run: |
-          docker compose down
+          docker compose down --remove-orphans 2>/dev/null || true
+          docker rm -f retro-shine 2>/dev/null || true
           docker compose up -d
 
       - name: Verify deployment
