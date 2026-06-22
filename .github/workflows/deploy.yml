@@ -17,6 +17,8 @@ env:
 jobs:
   build-and-deploy:
     runs-on: [self-hosted, retroshine]
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout repository
