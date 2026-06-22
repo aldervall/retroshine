@@ -1,0 +1,24 @@
+{
+    "apps": [
+        {
+            "name": "ES-DE (EmulationStation)",
+            "cmd": "launch-es-de.sh",
+            "image-path": "",
+            "output": "",
+            "index": 0
+        },
+        {
+            "name": "RetroArch (standalone)",
+            "cmd": "retroarch --menu",
+            "image-path": "",
+            "output": "",
+            "index": 1
+        }
+    ],
+    "env": {
+        "DISPLAY": ":99",
+        "PULSE_SERVER": "unix:/tmp/runtime-lizard/pulse/native",
+        "XDG_RUNTIME_DIR": "/tmp/runtime-lizard",
+        "SDL_AUDIODRIVER": "pulse"
+    }
+}

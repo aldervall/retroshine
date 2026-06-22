@@ -1,0 +1,51 @@
+# ROMs — not included in repo (add your own)
+roms/nes/*.nes
+roms/nes/*.NES
+roms/nes/*.zip
+roms/nes/*.ZIP
+roms/snes/*.sfc
+roms/snes/*.SFC
+roms/snes/*.smc
+roms/snes/*.SMC
+roms/snes/*.zip
+roms/snes/*.ZIP
+roms/gb/*.gb
+roms/gb/*.GB
+roms/gb/*.zip
+roms/gb/*.ZIP
+roms/gba/*.gba
+roms/gba/*.GBA
+roms/gba/*.zip
+roms/gba/*.ZIP
+roms/genesis/*.gen
+roms/genesis/*.GEN
+roms/genesis/*.md
+roms/genesis/*.MD
+roms/genesis/*.zip
+roms/genesis/*.ZIP
+
+# Keep the directory structure
+!roms/**/.gitkeep
+
+# Planning artifacts
+.omo/
+
+# Runtime state
+config/state/
+**/sunshine_state.json
+**/credentials/
+
+# Docker build artifacts
+sunshine-binary
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+*.swp
+*.swo
+*~
+
+# Temp
+/tmp/
