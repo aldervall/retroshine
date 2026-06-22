@@ -1,0 +1,78 @@
+name: Deploy RetroShine
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g. v1.0.0)'
+        required: true
+        type: string
+
+env:
+  IMAGE_NAME: retroshine
+
+jobs:
+  build-and-deploy:
+    runs-on: [self-hosted, retroshine]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }} \
+            -t ${{ env.IMAGE_NAME }}:latest \
+            .
+
+      - name: Update VERSION file
+        run: |
+          echo "${{ steps.version.outputs.VERSION }}" | sed 's/^v//' > VERSION
+          git add VERSION
+          git -c user.name="RetroShine Bot" \
+              -c user.email="bot@retroshine.dev" \
+              commit -m "chore: bump version to ${{ steps.version.outputs.VERSION }}" || true
+
+      - name: Deploy container
+        run: |
+          docker compose down
+          docker compose up -d
+
+      - name: Verify deployment
+        run: |
+          echo "=== Container Status ==="
+          sleep 5
+          docker ps --filter name=retro-shine --format '{{.Names}} {{.Image}} {{.Status}}'
+          
+          echo "=== Port Check ==="
+          for port in 47984 47989 47990 48010; do
+            ss -tlnp | grep -q ":$port " && echo "  ✅ Port $port listening" || echo "  ❌ Port $port NOT listening"
+          done
+          
+          echo "=== Core Check ==="
+          docker exec retro-shine ls /usr/lib/x86_64-linux-gnu/libretro/snes9x_libretro.so 2>/dev/null \
+            && echo "  ✅ snes9x core present" \
+            || echo "  ⚠️  snes9x core missing"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.event_name == 'push'
+        with:
+          name: RetroShine ${{ steps.version.outputs.VERSION }}
+          generate_release_notes: true
+          make_latest: true
