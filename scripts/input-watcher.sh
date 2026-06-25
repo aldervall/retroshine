@@ -28,20 +28,22 @@ create_missing_nodes() {
         esac
 
         # Create event node if missing
-        if [ -d "$input_dir/event" ]; then
-            read -r major minor < "$input_dir/event/dev" 2>/dev/null
-            event_dev="/dev/input/event${input_num}"
+        for event_dir in "$input_dir"/event*; do
+            [ -d "$event_dir" ] || continue
+            IFS=':' read -r major minor < "$event_dir/dev" 2>/dev/null
+            event_num="${event_dir##*/event}"
+            event_dev="/dev/input/event${event_num}"
             if [ ! -e "$event_dev" ]; then
                 mknod -m 666 "$event_dev" c "$major" "$minor" 2>/dev/null
                 echo "input-watcher: created $event_dev ($major:$minor) for '$name'"
             fi
-        fi
+        done
 
         # Create js node if missing
         for js_dir in "$input_dir"/js*; do
             [ -d "$js_dir" ] || continue
             js_num="${js_dir##*/js}"
-            read -r major minor < "$js_dir/dev" 2>/dev/null
+            IFS=':' read -r major minor < "$js_dir/dev" 2>/dev/null
             js_dev="/dev/input/js${js_num}"
             if [ ! -e "$js_dev" ]; then
                 mknod -m 666 "$js_dev" c "$major" "$minor" 2>/dev/null
@@ -60,15 +62,16 @@ create_missing_nodes() {
             *"passthrough"*)
                 # Some passthrough devices don't have event child on older Sunshine
                 # Just create if event dir exists
-                if [ -d "$input_dir/event" ]; then
-                    read -r major minor < "$input_dir/event/dev" 2>/dev/null
-                    input_num="${input_dir##*/input}"
-                    event_dev="/dev/input/event${input_num}"
+                for event_dir in "$input_dir"/event*; do
+                    [ -d "$event_dir" ] || continue
+                    IFS=':' read -r major minor < "$event_dir/dev" 2>/dev/null
+                    event_num="${event_dir##*/event}"
+                    event_dev="/dev/input/event${event_num}"
                     if [ ! -e "$event_dev" ]; then
                         mknod -m 666 "$event_dev" c "$major" "$minor" 2>/dev/null
                         echo "input-watcher: created $event_dev ($major:$minor) for '$name'"
                     fi
-                fi
+                done
                 ;;
         esac
     done

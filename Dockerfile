@@ -73,8 +73,9 @@ RUN chmod +x /scripts/entrypoint.sh /scripts/add-roms.sh /usr/local/bin/input-wa
     && chown -R lizard:lizard /scripts/entrypoint.sh /scripts/add-roms.sh /usr/local/bin/input-watcher.sh /usr/local/bin/launch-es-de.sh /home/lizard/.config/sunshine
 
 ENV DISPLAY=:99
-ENV XDG_RUNTIME_DIR=/tmp/.X11-unix
-ENV PULSE_SERVER=unix:/tmp/pulse-socket
+ENV XDG_RUNTIME_DIR=/tmp/runtime-lizard
+ENV PULSE_SERVER=unix:/tmp/runtime-lizard/pulse/native
+ENV SDL_AUDIODRIVER=pulse
 ENV SUNSHINE_USER=admin
 ENV SUNSHINE_PASS=retro123
 
