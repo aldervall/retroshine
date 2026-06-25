@@ -35,6 +35,14 @@ bash deploy.sh  # Edit for your PVE/LXC details
 **Gamepad flow:**
 Moonlight client → `/dev/uinput` → Sunshine creates virtual X360 → `input-watcher` creates `/dev/input/jsX` → SDL apps (ES-DE/RetroArch) detect joysticks
 
+### Critical Audio Fix
+**ES-DE black screen + "Unable to open audio device"?** SDL defaults to ALSA, but container has no ALSA hardware.
+- Set `SDL_AUDIODRIVER=pulse` in Dockerfile and docker-compose.yml environment
+- PulseAudio socket at `unix:/tmp/runtime-lizard/pulse/native` (not custom `/tmp/pulse-socket`)
+
+### input-watcher.sh Bug Fix
+**Device nodes not created?** The script uses `IFS=':'` for parsing `/sys/devices/.../dev` files because format is `major:minor` without space. Original `read major minor` fails.
+
 ## Ports (Moonlight Protocol)
 
 | Port | Purpose |
