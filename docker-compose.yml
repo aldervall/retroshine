@@ -8,8 +8,6 @@ services:
     privileged: true
     entrypoint: ["/scripts/entrypoint.sh"]
     environment:
-      - NVIDIA_DRIVER_CAPABILITIES=all
-      - NVIDIA_VISIBLE_DEVICES=all
       - DISPLAY=:99
       - PULSE_SERVER=unix:/tmp/runtime-lizard/pulse/native
       - SDL_AUDIODRIVER=pulse
@@ -31,13 +29,6 @@ services:
       - 'c 13:* rmw'
       - 'c 226:* rmw'
       - 'c 10:223 rmw'
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
 
 volumes:
   sunshine-config:

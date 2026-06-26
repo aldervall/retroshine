@@ -59,6 +59,7 @@ COPY scripts/recent-games-daemon.sh /usr/local/bin/recent-games-daemon.sh
 COPY scripts/launch-es-de.sh /usr/local/bin/launch-es-de.sh
 COPY config/retroarch-overrides.cfg /scripts/retroarch-overrides.cfg
 COPY roms/ /roms/
+COPY es-de/es_systems.cfg /opt/es-de/usr/bin/resources/systems/linux/es_systems.xml
 
 RUN chmod +x /scripts/entrypoint.sh /scripts/add-roms.sh /usr/local/bin/input-watcher.sh /usr/local/bin/launch-es-de.sh /usr/local/bin/recent-games-daemon.sh \
     && ln -sf /roms /home/lizard/ROMs \

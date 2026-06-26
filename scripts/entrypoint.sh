@@ -24,6 +24,11 @@ rm -f /tmp/pulse-socket 2>/dev/null || true
 mkdir -p /home/lizard/ES-DE/downloaded_media
 chown -R lizard:lizard /home/lizard/ES-DE/downloaded_media 2>/dev/null || true
 
+export ROMPATH=/roms
+export EMULATOR_RETROARCH=/usr/bin/retroarch
+export CORE_RETROARCH=/usr/lib/x86_64-linux-gnu/libretro
+export STARTDIR=/opt/es-de/usr/bin
+
 AS_LIZARD="runuser -u lizard --preserve-environment --"
 
 # Start dbus session so PulseAudio and other services don't spam connection errors
@@ -81,6 +86,10 @@ if [ -f "$CONFIG_FILE" ]; then
     sed -i 's/video_fullscreen = "false"/video_fullscreen = "true"/' "$CONFIG_FILE"
 fi
 
+mkdir -p /home/lizard/ES-DE/custom_systems
+cp /home/lizard/.emulationstation/es_systems.cfg /home/lizard/ES-DE/custom_systems/es_systems.cfg 2>/dev/null || true
+chown -R lizard:lizard /home/lizard/ES-DE/custom_systems 2>/dev/null || true
+
 echo "Starting input-watcher..."
 /usr/local/bin/input-watcher.sh &
 INPUT_WATCHER_PID=$!
@@ -88,6 +97,10 @@ INPUT_WATCHER_PID=$!
 echo "Starting recent-games-daemon..."
 nohup /usr/local/bin/recent-games-daemon.sh > /dev/null 2>&1 &
 RECENT_GAMES_PID=$!
+
+echo "Starting ES-DE..."
+nohup /usr/local/bin/launch-es-de.sh > /tmp/es-de.log 2>&1 &
+ES_DE_PID=$!
 
 SUNSHINE_PID=""
 
