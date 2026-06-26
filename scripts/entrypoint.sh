@@ -7,6 +7,10 @@ chmod 666 /dev/uinput 2>/dev/null || true
 # chmod 666 to make renderD* and card* accessible regardless of GID mapping.
 chmod 666 /dev/dri/render* /dev/dri/card* 2>/dev/null || true
 
+# nvidia-cap1 is root-only by default (cr--------); lizard needs it for NVENC
+# capability probing. nvidia-cap2 (monitor) is already world-readable.
+chmod 666 /dev/nvidia-caps/nvidia-cap1 2>/dev/null || true
+
 # Create lizard user if it doesn\'t exist (preserve existing user if present)
 if ! id -u lizard >/dev/null 2>&1; then
     # If video, render, input groups don\'t exist, create them

@@ -6,6 +6,7 @@ services:
     restart: unless-stopped
     network_mode: host
     privileged: true
+    runtime: nvidia
     entrypoint: ["/scripts/entrypoint.sh"]
     environment:
       - DISPLAY=:99
@@ -13,8 +14,9 @@ services:
       - SDL_AUDIODRIVER=pulse
       - SUNSHINE_USER=admin
       - SUNSHINE_PASS=retro123
-      - LIBVA_DRIVER_NAME=iHD
       - TZ=Europe/Stockholm
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=video,compute,utility,graphics
     volumes:
       - /dev/:/dev/:rw
       - /dev/input:/dev/input:rw
