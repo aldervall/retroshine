@@ -43,6 +43,9 @@ Moonlight client → `/dev/uinput` → Sunshine creates virtual X360 → `input-
 ### input-watcher.sh Bug Fix
 **Device nodes not created?** The script uses `IFS=':'` for parsing `/sys/devices/.../dev` files because format is `major:minor` without space. Original `read major minor` fails.
 
+### RetroArch fullscreen
+RetroArch standalone needs `--fullscreen` flag (`retroarch --menu --fullscreen`). Unlike ES-DE 3.x which dropped `--fullscreen` support, RetroArch still accepts it.
+
 ## Ports (Moonlight Protocol)
 
 | Port | Purpose |
