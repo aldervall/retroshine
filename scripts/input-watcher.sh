@@ -2,7 +2,7 @@
 # input-watcher.sh — Monitor /sys/devices/virtual/input/ for Sunshine virtual
 # gamepads and create missing /dev/input/ device nodes (eventX, jsX).
 #
-# Same fix as wolf-input-watcher.service — without udev inside Docker, uinput
+# Without udev inside Docker, uinput
 # devices get registered in the kernel but no /dev/input/event* or /dev/input/js*
 # nodes are created. SDL needs these nodes to detect joysticks.
 #

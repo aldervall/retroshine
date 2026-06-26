@@ -7,7 +7,7 @@ set -e
 
 PVE_HOST="10.10.0.3"
 LXC_HOST="10.10.0.55"
-PROJECT_DIR="/opt/wolf-container"
+PROJECT_DIR="/opt/retroshine"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -39,30 +39,6 @@ echo "  Done."
 PVE_EOF
 
 pass "LXC RAM bumped to 4GB"
-
-# ────────────────────────────────────────────
-# PHASE 0b — Teardown Wolf on LXC
-# ────────────────────────────────────────────
-info "Phase 0b: Tearing down Wolf on $LXC_HOST..."
-
-ssh root@"$LXC_HOST" <<'LXC_EOF'
-set -e
-echo "  Stopping wolf-input-watcher..."
-systemctl stop wolf-input-watcher.service 2>/dev/null || true
-systemctl disable wolf-input-watcher.service 2>/dev/null || true
-rm -f /usr/local/bin/wolf-input-watcher.sh
-rm -f /etc/systemd/system/wolf-input-watcher.service
-systemctl daemon-reload
-echo "  Stopping Wolf containers..."
-cd /opt/wolf 2>/dev/null && docker compose down 2>/dev/null || true
-echo "  Pruning Docker..."
-docker system prune -a --volumes -f 2>/dev/null || true
-echo "  Removing Wolf artifacts..."
-rm -rf /etc/wolf /opt/wolf
-echo "  Done."
-LXC_EOF
-
-pass "Wolf torn down on LXC"
 
 # ────────────────────────────────────────────
 # PHASE 1b — Copy project & build on LXC

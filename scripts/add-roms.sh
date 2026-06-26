@@ -27,10 +27,10 @@ if ! echo "$VALID_SYSTEMS" | grep -qw "$SYSTEM"; then
 fi
 
 echo "Adding $ROM to $SYSTEM..."
-cp "$ROM" "/opt/wolf-container/roms/$SYSTEM/"
+    cp "$ROM" "/opt/retroshine/roms/$SYSTEM/"
 
 echo "Rebuilding Docker image..."
-cd /opt/wolf-container
+cd /opt/retroshine
 docker compose build
 
 echo "Restarting container..."
