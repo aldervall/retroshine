@@ -31,6 +31,13 @@ services:
       - 'c 13:* rmw'
       - 'c 226:* rmw'
       - 'c 10:223 rmw'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
 volumes:
   sunshine-config:

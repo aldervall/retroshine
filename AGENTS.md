@@ -80,9 +80,6 @@ docker logs retro-shine 2>&1 | grep recent-games  # Daemon log output
 - `declare -A seen_paths` + `seen_paths=()` for dedup across poll cycles (both needed to preserve associative array type while clearing)
 - `{ wait $SUNSHINE_PID; exit_code=$?; } || true` pattern needed to capture exit code before `set -e` kills the script
 
-**Known issues:**
-- Dockerfile has duplicate identical `RUN apt-get` blocks (lines 21-29 and 50-58) — wastes build time, no runtime impact
-
 ## Ports (Moonlight Protocol)
 
 | Port | Purpose |

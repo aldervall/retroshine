@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsdl2-2.0-0 libboost-filesystem-dev libboost-system-dev \
     libfreeimage-dev libfreetype6-dev libcurl4-openssl-dev libpugixml-dev rapidjson-dev \
     retroarch libretro-nestopia libretro-gambatte libretro-mgba libretro-genesisplusgx libretro-snes9x \
-    curl jq x11-utils ca-certificates file unzip xdg-utils libxext-dev libxi-dev libxrender-dev \
+    curl jq x11-utils ca-certificates file unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and extract ES-DE AppImage (uruntime format extracts to CWD)
@@ -35,20 +35,20 @@ RUN curl -L -o /tmp/es-de.AppImage \
     && cd /tmp && /tmp/es-de.AppImage --appimage-extract >/dev/null 2>&1 \
     && EXTRACT_DIR=$(ls -d /tmp/AppDir /tmp/squashfs-root 2>/dev/null | head -1) \
     && if [ -z "$EXTRACT_DIR" ] || [ ! -d "$EXTRACT_DIR" ]; then \
-        echo "Look at /tmp:"; ls -la /tmp/; \
-        echo "Look at /:"; ls -la /; \
-        exit 1; \
-    fi \
+          echo "Look at /tmp:"; ls -la /tmp/; \
+          echo "Look at /:"; ls -la /; \
+          exit 1; \
+        fi \
     && mv "$EXTRACT_DIR" /opt/es-de \
     && rm -f /tmp/es-de.AppImage \
     && if [ -f /opt/es-de/AppRun ]; then \
-        ln -sf /opt/es-de/AppRun /usr/local/bin/es-de; \
-    elif ls /opt/es-de/*.AppImage 2>/dev/null; then \
-        ln -sf /opt/es-de/*.AppImage /usr/local/bin/es-de; \
-    fi
+          ln -sf /opt/es-de/AppRun /usr/local/bin/es-de; \
+        elif ls /opt/es-de/*.AppImage 2>/dev/null; then \
+          ln -sf /opt/es-de/*.AppImage /usr/local/bin/es-de; \
+        fi
 
 RUN mkdir -p /home/lizard/.config/sunshine
-COPY config/sunshine.conf /home/lizard/.config/sunshine/sunshine.conf
+COPY config/sunshine.conf /scripts/sunshine.conf
 COPY config/apps.json /home/lizard/.config/sunshine/apps.json
 COPY es-de/es_systems.cfg /root/.emulationstation/es_systems.cfg
 COPY es-de/es_systems.cfg /home/lizard/.emulationstation/es_systems.cfg
@@ -57,14 +57,12 @@ COPY scripts/add-roms.sh /scripts/add-roms.sh
 COPY scripts/input-watcher.sh /usr/local/bin/input-watcher.sh
 COPY scripts/recent-games-daemon.sh /usr/local/bin/recent-games-daemon.sh
 COPY scripts/launch-es-de.sh /usr/local/bin/launch-es-de.sh
+COPY config/retroarch-overrides.cfg /scripts/retroarch-overrides.cfg
 COPY roms/ /roms/
 
 RUN chmod +x /scripts/entrypoint.sh /scripts/add-roms.sh /usr/local/bin/input-watcher.sh /usr/local/bin/launch-es-de.sh /usr/local/bin/recent-games-daemon.sh \
     && ln -sf /roms /home/lizard/ROMs \
-    && chown -R lizard:lizard /scripts/entrypoint.sh /scripts/add-roms.sh /usr/local/bin/input-watcher.sh /usr/local/bin/launch-es-de.sh /usr/local/bin/recent-games-daemon.sh /home/lizard/.config/sunshine \
-    && mkdir -p /home/lizard/.config/retroarch/cores \
-    && for core in /usr/lib/x86_64-linux-gnu/libretro/*.so; do ln -sf "\$core" /home/lizard/.config/retroarch/cores/; done \
-    && chown -R lizard:lizard /home/lizard/.config/retroarch/cores
+    && chown -R lizard:lizard /scripts/entrypoint.sh /scripts/add-roms.sh /usr/local/bin/input-watcher.sh /usr/local/bin/launch-es-de.sh /usr/local/bin/recent-games-daemon.sh /home/lizard/.config/sunshine
 
 ENV DISPLAY=:99
 ENV XDG_RUNTIME_DIR=/tmp/runtime-lizard

@@ -21,7 +21,7 @@ jobs:
     runs-on: [self-hosted, retroshine]
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -72,12 +72,12 @@ jobs:
           echo "=== Container Status ==="
           sleep 5
           docker ps --filter name=retro-shine --format '{{.Names}} {{.Image}} {{.Status}}'
-          
+
           echo "=== Port Check ==="
           for port in 47984 47989 47990 48010; do
             ss -tlnp | grep -q ":$port " && echo "  ✅ Port $port listening" || echo "  ❌ Port $port NOT listening"
           done
-          
+
           echo "=== Core Check ==="
           docker exec retro-shine ls /usr/lib/x86_64-linux-gnu/libretro/snes9x_libretro.so 2>/dev/null \
             && echo "  ✅ snes9x core present" \

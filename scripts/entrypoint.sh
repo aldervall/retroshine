@@ -9,6 +9,12 @@ mkdir -p "$XDG_RUNTIME_DIR"
 chmod 700 "$XDG_RUNTIME_DIR"
 chown lizard:lizard "$XDG_RUNTIME_DIR"
 
+# Always refresh sunshine.conf from the image so CI changes take effect,
+# while sunshine_state.json and credentials/ (paired devices) persist in the volume.
+mkdir -p /home/lizard/.config/sunshine
+cp /scripts/sunshine.conf /home/lizard/.config/sunshine/sunshine.conf
+chown lizard:lizard /home/lizard/.config/sunshine/sunshine.conf
+
 echo "Cleaning up existing display and socket files..."
 pkill -f Xvfb 2>/dev/null || true
 rm -f /tmp/.X99-lock /tmp/.X11-unix/X99 2>/dev/null || true
@@ -69,15 +75,6 @@ if [ ! -f /home/lizard/.config/sunshine/sunshine_state.json ]; then
     echo "Credentials set."
 fi
 
-# Ensure RetroArch cores are symlinked
-echo "Setting up RetroArch cores..."
-mkdir -p /home/lizard/.config/retroarch/cores
-for core in /usr/lib/x86_64-linux-gnu/libretro/*.so; do
-    [ -f "$core" ] && ln -sf "$core" /home/lizard/.config/retroarch/cores/
-done
-chown -R lizard:lizard /home/lizard/.config/retroarch/cores
-echo "RetroArch cores ready."
-
 # Ensure RetroArch starts in fullscreen
 CONFIG_FILE="/home/lizard/.config/retroarch/retroarch.cfg"
 if [ -f "$CONFIG_FILE" ]; then
@@ -91,9 +88,6 @@ INPUT_WATCHER_PID=$!
 echo "Starting recent-games-daemon..."
 nohup /usr/local/bin/recent-games-daemon.sh > /dev/null 2>&1 &
 RECENT_GAMES_PID=$!
-
-nohup /usr/local/bin/launch-es-de.sh > /tmp/es-de.log 2>&1 &
-ES_DE_PID=$!
 
 SUNSHINE_PID=""
 
