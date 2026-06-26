@@ -55,6 +55,12 @@ if [ ! -f /home/lizard/.config/sunshine/sunshine_state.json ]; then
     echo "Credentials set."
 fi
 
+# Ensure RetroArch starts in fullscreen (default config has video_fullscreen = false)
+CONFIG_FILE="/home/lizard/.config/retroarch/retroarch.cfg"
+if [ -f "$CONFIG_FILE" ]; then
+    sed -i 's/video_fullscreen = "false"/video_fullscreen = "true"/' "$CONFIG_FILE"
+fi
+
 # Start input-watcher to create device nodes for Sunshine virtual gamepads
 # (no udev inside container means uinput devices lack /dev/input/event* nodes)
 echo "Starting input-watcher..."
