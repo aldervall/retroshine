@@ -37,19 +37,13 @@ create_missing_nodes() {
         local name
         name=$(cat "$input_dir/name" 2>/dev/null)
         [ -n "$name" ] || continue
-
-        case "$name" in
-            *"Sunshine"*"pad"*|*"Nintendo"*)
-                for sub in "$input_dir"/event* "$input_dir"/js*; do
-                    create_node "$sub" "gamepad" "$name"
-                done
-                ;;
-            *"passthrough"*)
-                for sub in "$input_dir"/event* "$input_dir"/js*; do
-                    create_node "$sub" "passthrough" "$name"
-                done
-                ;;
-        esac
+        # Create event* and js* nodes for every virtual input device.
+        # Sunshine names its virtual gamepad "Microsoft X-Box 360 pad" or similar
+        # (not "Sunshine*"), so name-based filtering misses the real controller.
+        # The container only ever has Sunshine + passthrough virtual devices.
+        for sub in "$input_dir"/event* "$input_dir"/js*; do
+            create_node "$sub" "input" "$name"
+        done
     done
 }
 
