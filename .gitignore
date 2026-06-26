@@ -1,3 +1,11 @@
+# Scraped media (persisted via volume mount)
+scraped-media/nes/*
+scraped-media/snes/*
+scraped-media/gb/*
+scraped-media/gba/*
+scraped-media/genesis/*
+!scraped-media/**/.gitkeep
+
 # ROMs — not included in repo (add your own)
 roms/nes/*.nes
 roms/nes/*.NES

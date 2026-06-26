@@ -14,6 +14,10 @@ pkill -f Xvfb 2>/dev/null || true
 rm -f /tmp/.X99-lock /tmp/.X11-unix/X99 2>/dev/null || true
 rm -f /tmp/pulse-socket 2>/dev/null || true
 
+# Ensure scraped-media directory exists with proper permissions
+mkdir -p /home/lizard/ES-DE/downloaded_media
+chown -R lizard:lizard /home/lizard/ES-DE/downloaded_media 2>/dev/null || true
+
 AS_LIZARD="runuser -u lizard --preserve-environment --"
 
 echo "Starting PulseAudio..."

@@ -21,6 +21,7 @@ services:
       - /dev/:/dev/:rw
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ./roms/:/roms/:ro
+      - ./scraped-media/:/home/lizard/ES-DE/downloaded_media/:rw
     devices:
       - /dev/dri:/dev/dri:rw
       - /dev/uinput
