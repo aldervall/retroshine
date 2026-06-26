@@ -44,10 +44,11 @@ chown lizard:lizard /home/lizard/.config/sunshine/sunshine.conf
 # The volume-persisted copy is root-owned from first-run Docker init; fix it.
 chown lizard:lizard /home/lizard/.config/sunshine/apps.json 2>/dev/null || true
 
-# Install RetroArch joypad autoconfigsjson from image so controller is mapped on startup.
+# Install RetroArch joypad autoconfigs from image so controller is mapped on startup.
+# chown the full retroarch dir — if root creates it first, lizard can't write retroarch.cfg.
 mkdir -p /home/lizard/.config/retroarch/autoconfig
 cp /scripts/retroarch-autoconfig/*.cfg /home/lizard/.config/retroarch/autoconfig/ 2>/dev/null || true
-chown -R lizard:lizard /home/lizard/.config/retroarch/autoconfig
+chown -R lizard:lizard /home/lizard/.config/retroarch
 
 echo "Cleaning up existing display and socket files..."
 pkill -f Xvfb 2>/dev/null || true
