@@ -80,11 +80,14 @@ if [ ! -f /home/lizard/.config/sunshine/sunshine_state.json ]; then
     echo "Credentials set."
 fi
 
-# Ensure RetroArch starts in fullscreen
-CONFIG_FILE="/home/lizard/.config/retroarch/retroarch.cfg"
-if [ -f "$CONFIG_FILE" ]; then
-    sed -i 's/video_fullscreen = "false"/video_fullscreen = "true"/' "$CONFIG_FILE"
+# Create required /dev/input/js* device nodes if they don't exist
+if [ ! -e /dev/input/js2 ]; then
+    mknod -m 666 /dev/input/js2 c 13 2
 fi
+if [ ! -e /dev/input/js3 ]; then
+    mknod -m 666 /dev/input/js3 c 13 3
+fi
+chmod 666 /dev/input/js2 /dev/input/js3
 
 mkdir -p /home/lizard/ES-DE/custom_systems
 cp /home/lizard/.emulationstation/es_systems.cfg /home/lizard/ES-DE/custom_systems/es_systems.cfg 2>/dev/null || true
