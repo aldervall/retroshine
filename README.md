@@ -15,8 +15,9 @@
 
 - **5 consoles** — NES, SNES, GB, GBA, Genesis — each with a dedicated RetroArch core
 - **Low-latency streaming** — VAAPI H.264 hardware encoding over Moonlight protocol
-- **ES-DE frontend** — Beautiful game launcher with box art support
-- **Single Docker container** — Everything baked in: Sunshine + ES-DE + RetroArch
+- **ES-DE frontend** — Beautiful game launcher with scraped box art
+- **Recent games in Moonlight** — Last 10 played games appear as one-click apps in your Moonlight client with box art
+- **Single Docker container** — Everything baked in: Sunshine + ES-DE + RetroArch + recent games daemon
 - **Gamepad support** — Zero-config controller passthrough via Moonlight
 
 ---
@@ -59,7 +60,7 @@ Login: **admin** / **retro123**
 3. Enter this PIN at the Web UI → it pairs instantly
 
 ### 5. Play!
-Launch **"ES-DE (EmulationStation)"** for the full game launcher experience, or **"RetroArch (standalone)"** for direct core access.
+Launch **"ES-DE (EmulationStation)"** from Moonlight for the full game launcher experience with box art. Your last 10 played games also appear directly in Moonlight as individual apps prefixed by system (e.g. "SNES - Super Mario World") — one-click launch without navigating the ES-DE menu.
 
 **That's it. You're gaming.** 🎮
 
@@ -74,7 +75,8 @@ Moonlight Client ──HTTPS──> RetroShine (Docker, host network, privileged
                               ├── PulseAudio (audio server)
                               ├── VAAPI H.264 encoder (HW encoding)
                               ├── ES-DE (frontend + game launcher)
-                              └── RetroArch (emulation)
+                              ├── RetroArch (emulation)
+                              └── recent-games-daemon (polls RetroArch history → Sunshine apps.json)
 ```
 
 | Component | Role |
@@ -82,6 +84,7 @@ Moonlight Client ──HTTPS──> RetroShine (Docker, host network, privileged
 | Sunshine | Game streaming server (Moonlight protocol) |
 | ES-DE | Frontend game launcher with box art |
 | RetroArch | Emulation via libretro cores |
+| recent-games-daemon | Polls RetroArch play history, populates last 10 games as Sunshine app entries with scraped media |
 | Xvfb | Virtual display (headless) |
 | PulseAudio | Audio server (null sink) |
 
