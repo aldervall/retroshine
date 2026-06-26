@@ -9,6 +9,12 @@ mkdir -p "$XDG_RUNTIME_DIR"
 chmod 700 "$XDG_RUNTIME_DIR"
 chown lizard:lizard "$XDG_RUNTIME_DIR"
 
+# Always refresh sunshine.conf from the image so CI changes take effect,
+# while sunshine_state.json and credentials/ (paired devices) persist in the volume.
+mkdir -p /home/lizard/.config/sunshine
+cp /scripts/sunshine.conf /home/lizard/.config/sunshine/sunshine.conf
+chown lizard:lizard /home/lizard/.config/sunshine/sunshine.conf
+
 echo "Cleaning up existing display and socket files..."
 pkill -f Xvfb 2>/dev/null || true
 rm -f /tmp/.X99-lock /tmp/.X11-unix/X99 2>/dev/null || true

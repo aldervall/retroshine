@@ -48,7 +48,7 @@ RUN curl -L -o /tmp/es-de.AppImage \
         fi
 
 RUN mkdir -p /home/lizard/.config/sunshine
-COPY config/sunshine.conf /home/lizard/.config/sunshine/sunshine.conf
+COPY config/sunshine.conf /scripts/sunshine.conf
 COPY config/apps.json /home/lizard/.config/sunshine/apps.json
 COPY es-de/es_systems.cfg /root/.emulationstation/es_systems.cfg
 COPY es-de/es_systems.cfg /home/lizard/.emulationstation/es_systems.cfg
