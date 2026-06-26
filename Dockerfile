@@ -47,16 +47,6 @@ RUN curl -L -o /tmp/es-de.AppImage \
           ln -sf /opt/es-de/*.AppImage /usr/local/bin/es-de; \
         fi
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    xvfb xserver-xorg-video-dummy \
-    mesa-utils mesa-va-drivers libgl1-mesa-dri libglx-mesa0 intel-media-va-driver \
-    pulseaudio pulseaudio-utils \
-    libsdl2-2.0-0 libboost-filesystem-dev libboost-system-dev \
-    libfreeimage-dev libfreetype6-dev libcurl4-openssl-dev libpugixml-dev rapidjson-dev \
-    retroarch libretro-nestopia libretro-gambatte libretro-mgba libretro-genesisplusgx libretro-snes9x \
-    curl jq x11-utils ca-certificates file unzip \
-    && rm -rf /var/lib/apt/lists/*
-
 RUN mkdir -p /home/lizard/.config/sunshine
 COPY config/sunshine.conf /home/lizard/.config/sunshine/sunshine.conf
 COPY config/apps.json /home/lizard/.config/sunshine/apps.json
