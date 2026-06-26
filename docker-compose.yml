@@ -17,6 +17,7 @@ services:
       - TZ=Europe/Stockholm
     volumes:
       - /dev/:/dev/:rw
+      - /dev/input:/dev/input:rw
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ./roms/:/roms/:ro
       - ./scraped-media/:/home/lizard/ES-DE/downloaded_media/:rw
@@ -29,6 +30,9 @@ services:
       - 'c 13:* rmw'
       - 'c 226:* rmw'
       - 'c 10:223 rmw'
+      - 'c 13:* rmw'
+      - 'c 1:* rmw'
+      - 'b 7:* rmw'
 
 volumes:
   sunshine-config:

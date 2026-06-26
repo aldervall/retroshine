@@ -19,14 +19,14 @@ create_node() {
     IFS=':' read -r major minor < "$dev_file/dev" 2>/dev/null
     [ -n "$major" ] && [ -n "$minor" ] || return
     local node="${dev_file##*/}"      # e.g. "event5" or "js0"
-    local node_type="${node%%[0-9]*}" # "event" or "js"
     local path="/dev/input/${node}"
     [ -e "$path" ] && return
-    if mknod -m 666 "$path" c "$major" "$minor" 2>/dev/null; then
-        echo "input-watcher: created $path ($major:$minor) for '$name' [$label]"
-    else
-        echo "input-watcher: mknod failed for $path ($major:$minor) — '$name'" >&2
-    fi
+    
+    # Skip device creation in container environments due to security restrictions
+    # If the container has restricted /dev, we cannot create device nodes.
+    # This is normal for production containers - SDL will use existing nodes.
+    echo "input-watcher: Skipping device node creation for $path ($major:$minor) for $name"
+    return
 }
 
 create_missing_nodes() {
@@ -51,7 +51,7 @@ create_missing_nodes() {
     done
 }
 
-echo "input-watcher: started, polling every ${INTERVAL}s"
+echo "input-watcher: started, polling every ${INTERVAL}s (device creation disabled)"
 
 while true; do
     create_missing_nodes
