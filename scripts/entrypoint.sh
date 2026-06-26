@@ -2,6 +2,10 @@
 set -e
 
 chmod 666 /dev/uinput 2>/dev/null || true
+# uhid is needed by Sunshine v2026+ (inputtino) for DS5/DS4 virtual gamepad creation.
+# Without it: "Gamepad ds5 is disabled due to Permission denied" at startup and
+# NO virtual controller is created at all (blocking even x360 emulation).
+chmod 666 /dev/uhid 2>/dev/null || true
 
 # Fix render device permissions: host and container render GIDs differ, so
 # chmod 666 to make renderD* and card* accessible regardless of GID mapping.
