@@ -2,33 +2,43 @@
 # input-watcher.sh — Monitor /sys/devices/virtual/input/ for Sunshine virtual
 # devices and create missing /dev/input/ device nodes (eventX, jsX).
 #
-# Without udev inside Docker, uinput devices get registered in the kernel but
-# no /dev/input/event* or /dev/input/js* nodes are created. SDL needs these
-# nodes to detect joysticks.
-#
-# Poll every 2 seconds (low overhead, just stat + read).
+# /dev is a host bind mount, so nodes from previous sessions persist across
+# container restarts. We clean stale nodes at startup and after each poll
+# cycle so RetroArch always sees fresh, correct major:minor mappings.
 
 INTERVAL=2
 
 mkdir -p /dev/input
 
+# Remove any /dev/input/event* or js* node whose major:minor no longer
+# matches an active sysfs virtual input sub-device.
+cleanup_stale_nodes() {
+    for path in /dev/input/event* /dev/input/js*; do
+        [ -e "$path" ] || continue
+        local node="${path##*/}"
+        # Search sysfs for a virtual device that owns this node name
+        local found=0
+        for input_dir in /sys/devices/virtual/input/input*; do
+            [ -d "$input_dir/$node" ] && { found=1; break; }
+        done
+        if [ "$found" = "0" ]; then
+            echo "input-watcher: Removing stale node $path"
+            rm -f "$path"
+        fi
+    done
+}
+
 create_node() {
-    local dev_file="$1" label="$2" name="$3"
+    local dev_file="$1" name="$2"
     [ -d "$dev_file" ] || return
     local major minor
     IFS=':' read -r major minor < "$dev_file/dev" 2>/dev/null
     [ -n "$major" ] && [ -n "$minor" ] || return
-    local node="${dev_file##*/}"      # e.g. "event5" or "js0"
+    local node="${dev_file##*/}"
     local path="/dev/input/${node}"
     [ -e "$path" ] && return
-    
-    # Create device nodes in container environments
-    # In container environments, we need to manually create /dev/input/ device nodes
-    # as the container doesn't have default udev rules to create them.
-    echo "input-watcher: Creating device node $path ($major:$minor) for $name"
-    # Kernel permissions will be enforced by mknod based on device registration
+    echo "input-watcher: Creating $path ($major:$minor) for [$name]"
     mknod -m 666 "$path" c "$major" "$minor"
-    return
 }
 
 create_missing_nodes() {
@@ -37,12 +47,8 @@ create_missing_nodes() {
         local name
         name=$(cat "$input_dir/name" 2>/dev/null)
         [ -n "$name" ] || continue
-        # Create event* and js* nodes for every virtual input device.
-        # Sunshine names its virtual gamepad "Microsoft X-Box 360 pad" or similar
-        # (not "Sunshine*"), so name-based filtering misses the real controller.
-        # The container only ever has Sunshine + passthrough virtual devices.
         for sub in "$input_dir"/event* "$input_dir"/js*; do
-            create_node "$sub" "input" "$name"
+            create_node "$sub" "$name"
         done
     done
 }
@@ -50,6 +56,7 @@ create_missing_nodes() {
 echo "input-watcher: started, polling every ${INTERVAL}s"
 
 while true; do
+    cleanup_stale_nodes
     create_missing_nodes
     sleep "$INTERVAL"
 done
