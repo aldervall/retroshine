@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       version:
@@ -29,10 +31,12 @@ jobs:
       - name: Set version
         id: version
         run: |
-          if [[ "${{ github.event_name }}" == "push" ]]; then
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
             echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
-          else
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=dev-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
           fi
 
       - name: Build Docker image
@@ -43,6 +47,7 @@ jobs:
             .
 
       - name: Update VERSION file
+        if: github.ref_type == 'tag'
         run: |
           echo "${{ steps.version.outputs.VERSION }}" | sed 's/^v//' > VERSION
           git add VERSION
@@ -52,6 +57,12 @@ jobs:
 
       - name: Deploy container
         run: |
+          rsync -av --delete \
+            --exclude='roms/' \
+            --exclude='scraped-media/' \
+            --exclude='.git/' \
+            ./ /opt/retroshine/
+          cd /opt/retroshine
           docker compose down --remove-orphans 2>/dev/null || true
           docker rm -f retro-shine 2>/dev/null || true
           docker compose up -d
@@ -74,7 +85,7 @@ jobs:
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
-        if: github.event_name == 'push'
+        if: github.ref_type == 'tag'
         with:
           name: RetroShine ${{ steps.version.outputs.VERSION }}
           generate_release_notes: true
