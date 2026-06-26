@@ -6,13 +6,6 @@
             "image-path": "",
             "output": "",
             "index": 0
-        },
-        {
-            "name": "RetroArch (standalone)",
-            "cmd": "retroarch --menu --fullscreen",
-            "image-path": "",
-            "output": "",
-            "index": 1
         }
     ],
     "env": {

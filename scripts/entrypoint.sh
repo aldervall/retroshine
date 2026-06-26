@@ -67,8 +67,27 @@ echo "Starting input-watcher..."
 /usr/local/bin/input-watcher.sh &
 INPUT_WATCHER_PID=$!
 
+# Start recent-games-daemon to populate last 10 played games as Sunshine apps
+echo "Starting recent-games-daemon..."
+nohup /usr/local/bin/recent-games-daemon.sh > /dev/null 2>&1 &
+RECENT_GAMES_PID=$!
+
+SUNSHINE_PID=""
+
+_cleanup() {
+    echo "[entrypoint] Cleaning up processes..."
+    kill $SUNSHINE_PID 2>/dev/null || true
+    kill $INPUT_WATCHER_PID 2>/dev/null || true
+    kill $RECENT_GAMES_PID 2>/dev/null || true
+    exit 0
+}
+trap '_cleanup' SIGTERM SIGINT
+
 echo "Starting Sunshine..."
-$AS_LIZARD sunshine &
-SUNSHINE_PID=$!
-trap 'kill $SUNSHINE_PID; kill $INPUT_WATCHER_PID 2>/dev/null; exit 0' SIGTERM SIGINT
-wait $SUNSHINE_PID
+while true; do
+    $AS_LIZARD sunshine &
+    SUNSHINE_PID=$!
+    { wait $SUNSHINE_PID; exit_code=$?; } || true
+    echo "[entrypoint] Sunshine exited (code $exit_code), restarting in 2s..."
+    sleep 2
+done

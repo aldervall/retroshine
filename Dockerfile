@@ -65,12 +65,13 @@ COPY es-de/es_systems.cfg /home/lizard/.emulationstation/es_systems.cfg
 COPY scripts/entrypoint.sh /scripts/entrypoint.sh
 COPY scripts/add-roms.sh /scripts/add-roms.sh
 COPY scripts/input-watcher.sh /usr/local/bin/input-watcher.sh
+COPY scripts/recent-games-daemon.sh /usr/local/bin/recent-games-daemon.sh
 COPY scripts/launch-es-de.sh /usr/local/bin/launch-es-de.sh
 COPY roms/ /roms/
 
-RUN chmod +x /scripts/entrypoint.sh /scripts/add-roms.sh /usr/local/bin/input-watcher.sh /usr/local/bin/launch-es-de.sh \
+RUN chmod +x /scripts/entrypoint.sh /scripts/add-roms.sh /usr/local/bin/input-watcher.sh /usr/local/bin/launch-es-de.sh /usr/local/bin/recent-games-daemon.sh \
     && ln -sf /roms /home/lizard/ROMs \
-    && chown -R lizard:lizard /scripts/entrypoint.sh /scripts/add-roms.sh /usr/local/bin/input-watcher.sh /usr/local/bin/launch-es-de.sh /home/lizard/.config/sunshine
+    && chown -R lizard:lizard /scripts/entrypoint.sh /scripts/add-roms.sh /usr/local/bin/input-watcher.sh /usr/local/bin/launch-es-de.sh /usr/local/bin/recent-games-daemon.sh /home/lizard/.config/sunshine
 
 ENV DISPLAY=:99
 ENV XDG_RUNTIME_DIR=/tmp/runtime-lizard
