@@ -9,7 +9,7 @@
         },
         {
             "name": "RetroArch (standalone)",
-            "cmd": "retroarch --menu",
+            "cmd": "retroarch --menu --fullscreen",
             "image-path": "",
             "output": "",
             "index": 1
