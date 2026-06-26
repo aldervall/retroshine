@@ -164,7 +164,7 @@ while true; do
 
     # Build display name and command
     display_name="${prefix} - ${clean_name}"
-    cmd="retroarch -L \"${core_path}\" \"${path}\" --fullscreen"
+    cmd="retroarch -L \"${core_path}\" \"${path}\" --fullscreen --appendconfig /scripts/retroarch-overrides.cfg"
 
     # Locate scraped media (miximages > covers > screenshots)
     image_path=""
