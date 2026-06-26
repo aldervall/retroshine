@@ -59,8 +59,10 @@ export DBUS_SESSION_BUS_ADDRESS=$(
     $AS_LIZARD dbus-daemon --session --fork --print-address 2>/dev/null
 ) || true
 
-# Pre-create cache and config dirs owned by lizard so mesa shader cache works
-$AS_LIZARD mkdir -p /home/lizard/.cache /home/lizard/.config/pulse 2>/dev/null || true
+# Pre-create cache dirs as root then chown, so mesa_shader_cache is never root-owned
+mkdir -p /home/lizard/.cache/mesa_shader_cache
+chown -R lizard:lizard /home/lizard/.cache
+$AS_LIZARD mkdir -p /home/lizard/.config/pulse 2>/dev/null || true
 
 echo "Starting PulseAudio..."
 rm -f /tmp/pulse-socket /tmp/runtime-lizard/pulse/pid 2>/dev/null || true
