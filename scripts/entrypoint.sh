@@ -7,6 +7,16 @@ chmod 666 /dev/uinput 2>/dev/null || true
 # NO virtual controller is created at all (blocking even x360 emulation).
 chmod 666 /dev/uhid 2>/dev/null || true
 
+# Remove ALL stale /dev/input/event* and js* nodes from previous container runs.
+# /dev is a host bind mount so nodes accumulate across restarts. Clearing them
+# once here lets input-watcher create fresh, correct nodes for the current session.
+# input-watcher only CREATES nodes after this — never removes mid-session so
+# RetroArch can't lose an open device file while a game is running.
+for _node in /dev/input/event* /dev/input/js*; do
+    [ -e "$_node" ] && rm -f "$_node"
+done
+unset _node
+
 # Fix render device permissions: host and container render GIDs differ, so
 # chmod 666 to make renderD* and card* accessible regardless of GID mapping.
 chmod 666 /dev/dri/render* /dev/dri/card* 2>/dev/null || true

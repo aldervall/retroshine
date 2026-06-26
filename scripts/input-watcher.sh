@@ -2,31 +2,13 @@
 # input-watcher.sh — Monitor /sys/devices/virtual/input/ for Sunshine virtual
 # devices and create missing /dev/input/ device nodes (eventX, jsX).
 #
-# /dev is a host bind mount, so nodes from previous sessions persist across
-# container restarts. We clean stale nodes at startup and after each poll
-# cycle so RetroArch always sees fresh, correct major:minor mappings.
+# Stale node cleanup is done ONCE at container startup by entrypoint.sh.
+# This script only CREATES nodes — never removes them mid-session — so
+# RetroArch cannot lose an open device file while a game is running.
 
 INTERVAL=2
 
 mkdir -p /dev/input
-
-# Remove any /dev/input/event* or js* node whose major:minor no longer
-# matches an active sysfs virtual input sub-device.
-cleanup_stale_nodes() {
-    for path in /dev/input/event* /dev/input/js*; do
-        [ -e "$path" ] || continue
-        local node="${path##*/}"
-        # Search sysfs for a virtual device that owns this node name
-        local found=0
-        for input_dir in /sys/devices/virtual/input/input*; do
-            [ -d "$input_dir/$node" ] && { found=1; break; }
-        done
-        if [ "$found" = "0" ]; then
-            echo "input-watcher: Removing stale node $path"
-            rm -f "$path"
-        fi
-    done
-}
 
 create_node() {
     local dev_file="$1" name="$2"
@@ -56,7 +38,6 @@ create_missing_nodes() {
 echo "input-watcher: started, polling every ${INTERVAL}s"
 
 while true; do
-    cleanup_stale_nodes
     create_missing_nodes
     sleep "$INTERVAL"
 done
