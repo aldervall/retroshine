@@ -144,7 +144,14 @@ fi
 mkdir -p /home/lizard/ES-DE/custom_systems
 
 echo "Starting input-watcher..."
-/usr/local/bin/input-watcher.sh &
+_run_input_watcher() {
+    while true; do
+        /usr/local/bin/input-watcher.sh
+        echo "[entrypoint] input-watcher exited, restarting in 2s..."
+        sleep 2
+    done
+}
+_run_input_watcher &
 INPUT_WATCHER_PID=$!
 
 echo "Starting recent-games-daemon..."
