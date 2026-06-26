@@ -15,13 +15,16 @@ on:
 
 env:
   IMAGE_NAME: retroshine
+  PROD_HOST: 10.10.0.55
+  PROD_USER: root
+  PROD_DIR: /opt/retroshine
 
 jobs:
   build-and-deploy:
     runs-on: [self-hosted, retroshine]
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,12 +42,12 @@ jobs:
             echo "VERSION=dev-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build Docker image
+      - name: Set up SSH key
         run: |
-          docker build \
-            -t ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }} \
-            -t ${{ env.IMAGE_NAME }}:latest \
-            .
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/prod_deploy
+          chmod 600 ~/.ssh/prod_deploy
+          ssh-keyscan -H ${{ env.PROD_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Update VERSION file
         if: github.ref_type == 'tag'
@@ -55,33 +58,54 @@ jobs:
               -c user.email="bot@retroshine.dev" \
               commit -m "chore: bump version to ${{ steps.version.outputs.VERSION }}" || true
 
-      - name: Deploy container
+      - name: Sync source to production
         run: |
           rsync -av --delete \
             --exclude='roms/' \
             --exclude='scraped-media/' \
             --exclude='.git/' \
-            ./ /opt/retroshine/
+            -e "ssh -i ~/.ssh/prod_deploy -o StrictHostKeyChecking=no" \
+            ./ ${{ env.PROD_USER }}@${{ env.PROD_HOST }}:${{ env.PROD_DIR }}/
+
+      - name: Build and deploy on production
+        run: |
+          ssh -i ~/.ssh/prod_deploy -o StrictHostKeyChecking=no \
+            ${{ env.PROD_USER }}@${{ env.PROD_HOST }} bash << 'REMOTE'
+          set -e
           cd /opt/retroshine
+          docker build \
+            -t retroshine:${{ steps.version.outputs.VERSION }} \
+            -t retroshine:latest \
+            .
           docker compose down --remove-orphans 2>/dev/null || true
           docker rm -f retro-shine 2>/dev/null || true
           docker compose up -d
+          REMOTE
 
       - name: Verify deployment
         run: |
-          echo "=== Container Status ==="
           sleep 5
+          ssh -i ~/.ssh/prod_deploy -o StrictHostKeyChecking=no \
+            ${{ env.PROD_USER }}@${{ env.PROD_HOST }} bash << 'REMOTE'
+          echo "=== Container Status ==="
           docker ps --filter name=retro-shine --format '{{.Names}} {{.Image}} {{.Status}}'
-          
+
           echo "=== Port Check ==="
           for port in 47984 47989 47990 48010; do
-            ss -tlnp | grep -q ":$port " && echo "  ✅ Port $port listening" || echo "  ❌ Port $port NOT listening"
+            ss -tlnp | grep -q ":$port " \
+              && echo "  ✅ Port $port listening" \
+              || echo "  ❌ Port $port NOT listening"
           done
-          
+
           echo "=== Core Check ==="
           docker exec retro-shine ls /usr/lib/x86_64-linux-gnu/libretro/snes9x_libretro.so 2>/dev/null \
             && echo "  ✅ snes9x core present" \
             || echo "  ⚠️  snes9x core missing"
+          REMOTE
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f ~/.ssh/prod_deploy
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
