@@ -22,10 +22,12 @@ create_node() {
     local path="/dev/input/${node}"
     [ -e "$path" ] && return
     
-    # Skip device creation in container environments due to security restrictions
-    # If the container has restricted /dev, we cannot create device nodes.
-    # This is normal for production containers - SDL will use existing nodes.
-    echo "input-watcher: Skipping device node creation for $path ($major:$minor) for $name"
+    # Create device nodes in container environments
+    # In container environments, we need to manually create /dev/input/ device nodes
+    # as the container doesn't have default udev rules to create them.
+    echo "input-watcher: Creating device node $path ($major:$minor) for $name"
+    # Kernel permissions will be enforced by mknod based on device registration
+    mknod -m 666 "$path" c "$major" "$minor"
     return
 }
 
@@ -43,7 +45,7 @@ create_missing_nodes() {
                 done
                 ;;
             *"passthrough"*)
-                for sub in "$input_dir"/event*; do
+                for sub in "$input_dir"/event* "$input_dir"/js*; do
                     create_node "$sub" "passthrough" "$name"
                 done
                 ;;
@@ -51,7 +53,7 @@ create_missing_nodes() {
     done
 }
 
-echo "input-watcher: started, polling every ${INTERVAL}s (device creation disabled)"
+echo "input-watcher: started, polling every ${INTERVAL}s"
 
 while true; do
     create_missing_nodes

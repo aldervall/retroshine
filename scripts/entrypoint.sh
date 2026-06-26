@@ -2,7 +2,25 @@
 set -e
 
 chmod 666 /dev/uinput 2>/dev/null || true
-usermod -aG video,render,input lizard 2>/dev/null || true
+
+# Fix render device permissions: host and container render GIDs differ, so
+# chmod 666 to make renderD* and card* accessible regardless of GID mapping.
+chmod 666 /dev/dri/render* /dev/dri/card* 2>/dev/null || true
+
+# Create lizard user if it doesn\'t exist (preserve existing user if present)
+if ! id -u lizard >/dev/null 2>&1; then
+    # If video, render, input groups don\'t exist, create them
+    # They may already exist but be empty, so we always recreate them to ensure lizard is added
+    for group in video render input; do
+        if ! getent group $group >/dev/null 2>&1; then
+            groupadd $group
+        fi
+    done
+    useradd -m -s /bin/bash lizard
+    # Add lizard to required groups
+    usermod -aG video,render,input lizard
+    echo "Created lizard user with video, render, input groups"
+fi
 
 export XDG_RUNTIME_DIR=/tmp/runtime-lizard
 mkdir -p "$XDG_RUNTIME_DIR"
@@ -29,9 +47,10 @@ export EMULATOR_RETROARCH=/usr/bin/retroarch
 export CORE_RETROARCH=/usr/lib/x86_64-linux-gnu/libretro
 export STARTDIR=/opt/es-de/usr/bin
 
-AS_LIZARD="runuser -u lizard --preserve-environment --"
+mkdir -p /home/lizard/ES-DE/custom_systems
+chown -R lizard:lizard /home/lizard/ES-DE/custom_systems 2>/dev/null || true
 
-# Start dbus session so PulseAudio and other services don't spam connection errors
+AS_LIZARD="runuser -u lizard --preserve-environment --"
 echo "Starting dbus..."
 mkdir -p /run/dbus
 rm -f /run/dbus/pid
@@ -40,8 +59,8 @@ export DBUS_SESSION_BUS_ADDRESS=$(
     $AS_LIZARD dbus-daemon --session --fork --print-address 2>/dev/null
 ) || true
 
-# Pre-create PulseAudio config dir to suppress cookie warnings
-$AS_LIZARD mkdir -p /home/lizard/.config/pulse 2>/dev/null || true
+# Pre-create cache and config dirs owned by lizard so mesa shader cache works
+$AS_LIZARD mkdir -p /home/lizard/.cache /home/lizard/.config/pulse 2>/dev/null || true
 
 echo "Starting PulseAudio..."
 rm -f /tmp/pulse-socket /tmp/runtime-lizard/pulse/pid 2>/dev/null || true
@@ -80,18 +99,7 @@ if [ ! -f /home/lizard/.config/sunshine/sunshine_state.json ]; then
     echo "Credentials set."
 fi
 
-# Create required /dev/input/js* device nodes if they don't exist
-if [ ! -e /dev/input/js2 ]; then
-    mknod -m 666 /dev/input/js2 c 13 2
-fi
-if [ ! -e /dev/input/js3 ]; then
-    mknod -m 666 /dev/input/js3 c 13 3
-fi
-chmod 666 /dev/input/js2 /dev/input/js3
-
 mkdir -p /home/lizard/ES-DE/custom_systems
-cp /home/lizard/.emulationstation/es_systems.cfg /home/lizard/ES-DE/custom_systems/es_systems.cfg 2>/dev/null || true
-chown -R lizard:lizard /home/lizard/ES-DE/custom_systems 2>/dev/null || true
 
 echo "Starting input-watcher..."
 /usr/local/bin/input-watcher.sh &
