@@ -7,9 +7,10 @@
 # RetroArch cannot lose an open device file while a game is running.
 #
 # Reconnect delay: when Sunshine virtual devices disappear (Moonlight disconnect),
-# we delay creating nodes for newly-appearing devices by 10 seconds. This gives
+# we delay creating nodes for newly-appearing devices by 2 seconds. This gives
 # SDL2 time to process the JOYDEVICEREMOVED event before JOYDEVICEADDED fires,
 # preventing a RetroArch 1.18.0 use-after-free crash in the hotplug handler.
+# SDL2 processes REMOVED within one frame (~16ms), so 2s is a 120x safety margin.
 
 INTERVAL=2
 
@@ -62,8 +63,8 @@ while true; do
 
     # Detect Sunshine device disappearance (Moonlight disconnect / reconnect)
     if [ "$LAST_SUNSHINE_COUNT" -gt 0 ] && [ "$sunshine_count" -lt "$LAST_SUNSHINE_COUNT" ]; then
-        RECONNECT_DELAY_UNTIL=$((current_time + 10))
-        echo "input-watcher: Sunshine devices dropped ($LAST_SUNSHINE_COUNT→$sunshine_count), delaying node creation 10s to let SDL2 process JOYDEVICEREMOVED first"
+        RECONNECT_DELAY_UNTIL=$((current_time + 2))
+        echo "input-watcher: Sunshine devices dropped ($LAST_SUNSHINE_COUNT→$sunshine_count), delaying node creation 2s to let SDL2 process JOYDEVICEREMOVED first"
     fi
     LAST_SUNSHINE_COUNT=$sunshine_count
 
