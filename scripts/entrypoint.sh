@@ -59,15 +59,16 @@ chown lizard:lizard /home/lizard/.config/sunshine/apps.json 2>/dev/null || true
 mkdir -p /home/lizard/.config/retroarch
 chown -R lizard:lizard /home/lizard/.config/retroarch
 
-# log_to_file must be in the MAIN retroarch.cfg — RetroArch initializes its logger
-# before reading --appendconfig, so log_to_file = "true" in overrides.cfg has no effect.
-# --log-file=FILE also only sets the path; it does not enable file logging by itself.
+# File logging in RetroArch 1.18.0 requires --verbose (or log_verbosity = "true" in main
+# config) AND log_to_file = "true". The --log-file flag alone and appendconfig don't work.
+# Patch both into the main cfg here so the crash log appears at /tmp/retroarch.log.
 _RA_CFG=/home/lizard/.config/retroarch/retroarch.cfg
 if [ -f "$_RA_CFG" ]; then
     sed -i '/^log_to_file = /d' "$_RA_CFG"
-    echo 'log_to_file = "true"' >> "$_RA_CFG"
+    sed -i '/^log_verbosity = /d' "$_RA_CFG"
+    printf 'log_to_file = "true"\nlog_verbosity = "true"\n' >> "$_RA_CFG"
 else
-    printf 'log_to_file = "true"\nlog_dir = "/tmp"\n' > "$_RA_CFG"
+    printf 'log_to_file = "true"\nlog_verbosity = "true"\nlog_dir = "/tmp"\n' > "$_RA_CFG"
     chown lizard:lizard "$_RA_CFG"
 fi
 unset _RA_CFG
