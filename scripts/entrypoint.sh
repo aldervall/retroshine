@@ -36,6 +36,9 @@ chown lizard:lizard "$XDG_RUNTIME_DIR"
 mkdir -p /home/lizard/.config/sunshine
 cp /scripts/sunshine.conf /home/lizard/.config/sunshine/sunshine.conf
 chown lizard:lizard /home/lizard/.config/sunshine/sunshine.conf
+# apps.json is written by Sunshine when apps are modified via web UI (v2026+).
+# The volume-persisted copy is root-owned from first-run Docker init; fix it.
+chown lizard:lizard /home/lizard/.config/sunshine/apps.json 2>/dev/null || true
 
 echo "Cleaning up existing display and socket files..."
 pkill -f Xvfb 2>/dev/null || true
