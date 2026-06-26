@@ -44,12 +44,10 @@ ES_DE_BASE='{
 
 # --- Helpers -----------------------------------------------------------------
 
-# Atomic write of final JSON + SIGHUP Sunshine
+# Atomic write of final JSON + SIGHUP Sunshine (only when content changes)
 write_apps_json() {
   local entries_json="$1"
-  local final_json
-  local game_count
-  local sun_pid
+  local final_json game_count sun_pid new_hash old_hash
 
   game_count=$(echo "$entries_json" | jq 'length')
 
@@ -58,6 +56,15 @@ write_apps_json() {
     echo "[recent-games] ERROR: Failed to build final apps.json"
     return 1
   }
+
+  # Skip write and SIGHUP if content is identical to what's already on disk.
+  # This prevents the "no history file" path from hammering Sunshine with
+  # SIGHUP every 10 seconds when nothing has changed.
+  new_hash=$(echo "$final_json" | jq -cS . | sha256sum)
+  old_hash=$(jq -cS . "$APPS_FILE" 2>/dev/null | sha256sum || echo "")
+  if [[ "$new_hash" == "$old_hash" ]]; then
+    return 0
+  fi
 
   # Ensure target directory exists
   mkdir -p "$(dirname "$APPS_FILE")"
