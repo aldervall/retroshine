@@ -55,8 +55,9 @@ chown lizard:lizard /home/lizard/.config/sunshine/sunshine.conf
 chown lizard:lizard /home/lizard/.config/sunshine/apps.json 2>/dev/null || true
 
 # Ensure retroarch config dir is lizard-owned — if root creates it first via mkdir -p,
-# lizard can't write retroarch.cfg. SDL2 handles controller mapping via its built-in DB.
-mkdir -p /home/lizard/.config/retroarch
+# lizard can't write retroarch.cfg.
+mkdir -p /home/lizard/.config/retroarch/autoconfig
+cp /scripts/retroarch-autoconfig/* /home/lizard/.config/retroarch/autoconfig/ 2>/dev/null || true
 chown -R lizard:lizard /home/lizard/.config/retroarch
 
 # File logging in RetroArch 1.18.0 requires --verbose (or log_verbosity = "true" in main
