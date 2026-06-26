@@ -67,9 +67,10 @@ _RA_CFG=/home/lizard/.config/retroarch/retroarch.cfg
 if [ -f "$_RA_CFG" ]; then
     sed -i '/^log_to_file = /d' "$_RA_CFG"
     sed -i '/^log_verbosity = /d' "$_RA_CFG"
-    printf 'log_to_file = "true"\nlog_verbosity = "true"\n' >> "$_RA_CFG"
+    sed -i '/^input_player1_joypad_index = /d' "$_RA_CFG"
+    printf 'log_to_file = "true"\nlog_verbosity = "true"\ninput_player1_joypad_index = "2"\n' >> "$_RA_CFG"
 else
-    printf 'log_to_file = "true"\nlog_verbosity = "true"\nlog_dir = "/tmp"\n' > "$_RA_CFG"
+    printf 'log_to_file = "true"\nlog_verbosity = "true"\nlog_dir = "/tmp"\ninput_player1_joypad_index = "2"\n' > "$_RA_CFG"
     chown lizard:lizard "$_RA_CFG"
 fi
 unset _RA_CFG
