@@ -1,0 +1,16 @@
+name: Show Container Logs
+
+on:
+  workflow_dispatch:
+    inputs:
+      lines:
+        description: 'Number of log lines'
+        required: false
+        default: '100'
+
+jobs:
+  logs:
+    runs-on: [self-hosted, retroshine]
+    steps:
+      - name: Docker compose logs
+        run: docker logs retro-shine --tail ${{ github.event.inputs.lines }} 2>&1
