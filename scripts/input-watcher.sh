@@ -5,6 +5,11 @@
 # Stale node cleanup is done ONCE at container startup by entrypoint.sh.
 # This script only CREATES nodes — never removes them mid-session — so
 # RetroArch cannot lose an open device file while a game is running.
+#
+# Reconnect delay: when Sunshine virtual devices disappear (Moonlight disconnect),
+# we delay creating nodes for newly-appearing devices by 10 seconds. This gives
+# SDL2 time to process the JOYDEVICEREMOVED event before JOYDEVICEADDED fires,
+# preventing a RetroArch 1.18.0 use-after-free crash in the hotplug handler.
 
 INTERVAL=2
 
@@ -23,6 +28,17 @@ create_node() {
     mknod -m 666 "$path" c "$major" "$minor"
 }
 
+count_sunshine_devices() {
+    local count=0
+    for d in /sys/devices/virtual/input/input*; do
+        [ -d "$d" ] || continue
+        local name
+        name=$(cat "$d/name" 2>/dev/null)
+        case "$name" in Sunshine*) count=$((count + 1)) ;; esac
+    done
+    echo "$count"
+}
+
 create_missing_nodes() {
     for input_dir in /sys/devices/virtual/input/input*; do
         [ -d "$input_dir" ] || continue
@@ -37,7 +53,28 @@ create_missing_nodes() {
 
 echo "input-watcher: started, polling every ${INTERVAL}s"
 
+LAST_SUNSHINE_COUNT=0
+RECONNECT_DELAY_UNTIL=0
+
 while true; do
+    current_time=$(date +%s)
+    sunshine_count=$(count_sunshine_devices)
+
+    # Detect Sunshine device disappearance (Moonlight disconnect / reconnect)
+    if [ "$LAST_SUNSHINE_COUNT" -gt 0 ] && [ "$sunshine_count" -lt "$LAST_SUNSHINE_COUNT" ]; then
+        RECONNECT_DELAY_UNTIL=$((current_time + 10))
+        echo "input-watcher: Sunshine devices dropped ($LAST_SUNSHINE_COUNT→$sunshine_count), delaying node creation 10s to let SDL2 process JOYDEVICEREMOVED first"
+    fi
+    LAST_SUNSHINE_COUNT=$sunshine_count
+
+    # During the reconnect delay, skip node creation so SDL2 sees REMOVED before ADDED
+    if [ "$current_time" -lt "$RECONNECT_DELAY_UNTIL" ]; then
+        remaining=$((RECONNECT_DELAY_UNTIL - current_time))
+        echo "input-watcher: reconnect delay active, ${remaining}s remaining"
+        sleep "$INTERVAL"
+        continue
+    fi
+
     create_missing_nodes
     sleep "$INTERVAL"
 done
